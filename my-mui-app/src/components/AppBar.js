@@ -1,23 +1,39 @@
-import React from "react";
-import { AppBar, Toolbar, Typography, IconButton, Avatar, Button, ListItem } from "@mui/material";
+import React, { useState, useEffect } from "react";
+import { AppBar, Toolbar, Typography, IconButton, Avatar, Button, ListItem, Box } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
-import { Link, useLocation } from "react-router-dom";
 import HelpIcon from '@mui/icons-material/Help';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
-import { Box } from "@mui/material";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { googleLogout } from "@react-oauth/google";
 
 const AppBarComponent = ({ open, setOpen }) => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const [profile, setProfile] = useState(null);
+
+  useEffect(() => {
+    const storedProfile = localStorage.getItem("profile");
+    if (storedProfile) {
+      setProfile(JSON.parse(storedProfile));
+    }
+  }, []);
+
+  const logOut = () => {
+    googleLogout();
+    setProfile(null);
+    localStorage.removeItem("profile");
+    window.location.href = "/"; // Find better fix later, for not it works because it's hard reload
+  };
 
   return (
     <AppBar position="fixed" sx={{ zIndex: 1201 }}>
-      <Toolbar>
-        <IconButton edge="start" color="inherit" onClick={() => setOpen(!open)}>
+      <Toolbar color="red">
+        <IconButton edge="start" color="inherit" onClick={() => setOpen(!open)} >
           <MenuIcon />
         </IconButton>
         <Typography variant="h6" sx={{ flexGrow: 1 }}>
-          txture
+          Sheldon
         </Typography>
         <ListItem sx={{ display: 'flex', gap: 2 }}>
           <Button
@@ -92,7 +108,21 @@ const AppBarComponent = ({ open, setOpen }) => {
       <IconButton edge="start" color="inherit" onClick={() => setOpen(!open)}>
         <AccessTimeIcon />
       </IconButton>
-      <Avatar alt="User" src="/profile.jpg" />
+      {profile ? (
+            <>
+                <Typography variant="body1" sx={{ color: "white", marginRight: 1 }}>
+                Welcome, {profile.given_name}
+              </Typography>
+              <Avatar alt={profile.name} src={profile.picture} />
+              <Button component={Link} to="/" color="inherit" onClick={logOut}  >
+                Logout
+              </Button>
+               
+            </>
+          ) : (
+            <Avatar alt="User" src="/profile.jpg" />
+           
+          )}
     </Box>
       
       </Toolbar>
